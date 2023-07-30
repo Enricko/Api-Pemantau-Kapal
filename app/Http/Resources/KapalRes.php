@@ -14,6 +14,14 @@ class KapalRes extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            "call_sign"=> $this->call_sign,
+            "flag"=> $this->flag,
+            "kelas"=> $this->class,
+            "builder"=> $this->builder,
+            "year_built"=> $this->year_built,
+            "created_at"=> $this->created_at,
+            "updated_at"=> $this->updated_at
+        ];
     }
 }
