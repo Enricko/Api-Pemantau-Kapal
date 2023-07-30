@@ -17,12 +17,21 @@ class Coordinate extends Controller
     public function getKapalAllCoor(){
         $call_sign = request()->call_sign;
         $message = "Data Coor Kapal Ditemukan";
-        $coor = ModelsCoordinate::join('coordinate_ggas','coordinate_ggas.id_coor_gga','=','coordinates.id_coor_gga')->join('coordinate_hdts','coordinate_hdts.id_coor_hdt','=','coordinates.id_coor_hdt')->where('coordinates.call_sign',$call_sign);
+        $coor = ModelsCoordinate::join('coordinate_ggas','coordinate_ggas.id_coor_gga','=','coordinates.id_coor_gga')
+        ->join('coordinate_hdts','coordinate_hdts.id_coor_hdt','=','coordinates.id_coor_hdt')
+        ->where('coordinates.call_sign',$call_sign)
+        ->orderByDesc('coordinates.series_id')->get();
         $rules = [
             'call_sign' => ['required','max:255'],
         ];
         return Coordinate::displayData($coor,$message,$rules);
-
+    }
+    public function getKapalAllLatestCoor(){
+        $message = "Data Coor Kapal Ditemukan";
+        $coor = ModelsCoordinate::join('coordinate_ggas','coordinate_ggas.id_coor_gga','=','coordinates.id_coor_gga')
+        ->join('coordinate_hdts','coordinate_hdts.id_coor_hdt','=','coordinates.id_coor_hdt')
+        ->orderByDesc('coordinates.series_id')->get()->unique('call_sign');
+        return Coordinate::displayData($coor,$message);
     }
     
     public function insertCoor(){
@@ -114,7 +123,7 @@ class Coordinate extends Controller
         // Pages parameter
         $page = request()->page == null ? 1 : request()->page;
         $perpage = request()->perpage == null ? 10 : request()->perpage;
-        $coor = $coor->skip(($page - 1) * $perpage)->take($perpage)->get();
+        $coor = $coor->skip(($page - 1) * $perpage)->take($perpage);
 
         // Validasi
         $validator = Validator::make(request()->all(),$rules);
