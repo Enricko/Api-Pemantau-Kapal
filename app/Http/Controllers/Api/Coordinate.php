@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CoorRes;
+use App\Http\Resources\LatLangRes;
 use App\Models\Coordinate as ModelsCoordinate;
 use App\Models\Coordinate_gga as ModelsCoordinate_gga;
 use App\Models\Coordinate_hdt;
@@ -13,6 +14,19 @@ use Illuminate\Support\Facades\Validator;
 
 class Coordinate extends Controller
 {
+
+    public function getLatLangCoor(){
+        // $call_sign = request()->call_sign;
+        $message = "Data Coor Kapal Ditemukan";
+        $coor = ModelsCoordinate::join('coordinate_ggas','coordinate_ggas.id_coor_gga','=','coordinates.id_coor_gga')
+        ->join('coordinate_hdts','coordinate_hdts.id_coor_hdt','=','coordinates.id_coor_hdt')
+        // ->where('coordinates.call_sign',$call_sign)
+        ->orderByDesc('coordinates.series_id')->get();
+        // $rules = [
+        //     'call_sign' => ['required','max:255'],
+        // ];
+        return Coordinate::displayDataLatLang($coor,$message);
+    }
 
     public function getKapalAllCoor(){
         $call_sign = request()->call_sign;
@@ -62,7 +76,7 @@ class Coordinate extends Controller
                 'error' => $validator->errors()
             ],400);
         }
-        if(count($gga_split) != 14){
+        if(count($gga_split) != 15){
             return response()->json([
                 'message' => "Kordinat NMEA-183 GGA kurang lengkap",
                 'status' => 403
@@ -144,6 +158,34 @@ class Coordinate extends Controller
             'total' => $total,
             'data' => $CoorCol,
         ]);
+    }
+
+    public function displayDataLatLang($coor,$message,$rules = []){
+        $total = $coor->count();
+        // Pages parameter
+        $page = request()->page == null ? 1 : request()->page;
+        $perpage = request()->perpage == null ? 10 : request()->perpage;
+        $coor = $coor->skip(($page - 1) * $perpage)->take($perpage);
+
+        // Validasi
+        $validator = Validator::make(request()->all(),$rules);
+        if($validator->fails()){
+            return response()->json([
+                'message' => "Validator Fails",
+                'error' => $validator->errors()
+            ],400);
+        }
+
+        // Response
+        $CoorCol = LatLangRes::collection($coor);
+        return response()->json([
+            'message' => $message,
+            'status' => 200,
+            'perpage' => intval($perpage),
+            'page' => intval($page),
+            'total' => $total,
+            'data' => $CoorCol,
+        ]);
 
     }
     
@@ -157,6 +199,6 @@ class Coordinate extends Controller
             $decimal=$decimal*(-1);
         }
         $decimal=number_format($decimal,$precision,'.','');
-        return $decimal;
+        return $decimal; 
     }  
 }
