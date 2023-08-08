@@ -16,9 +16,9 @@ return new class extends Migration
             $table->string('call_sign');
             $table->foreign('call_sign')->references('call_sign')->on('kapals')->onDelete('cascade');
             $table->bigInteger('series_id');
-            $table->unsignedBigInteger('id_coor_gga');
+            $table->unsignedBigInteger('id_coor_gga')->nullable();
             $table->foreign('id_coor_gga')->references('id_coor_gga')->on('coordinate_ggas')->onDelete('cascade');
-            $table->unsignedBigInteger('id_coor_hdt');
+            $table->unsignedBigInteger('id_coor_hdt')->nullable();
             $table->foreign('id_coor_hdt')->references('id_coor_hdt')->on('coordinate_hdts')->onDelete('cascade');
             $table->timestamps();
         });

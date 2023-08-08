@@ -27,7 +27,7 @@ class Authentication extends Controller
         if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
             $user = User::where('email',$request->email);
             $userGet = $user->first();
-            $token = $userGet->createToken('AppsToken',expiresAt:now()->addMinute())->plainTextToken;
+            $token = $userGet->createToken('AppsToken',expiresAt:now()->addDays(2))->plainTextToken;
             return response()->json([
                 'message' => 'Selamat datang '.$userGet->name,
                 'token' => $token,
@@ -63,7 +63,7 @@ class Authentication extends Controller
 
         $user = User::create($data);
 
-        $token = $user->createToken('AppsToken',expiresAt:now()->addMinute())->plainTextToken;
+        $token = $user->createToken('AppsToken',expiresAt:now()->addDays(2))->plainTextToken;
         $userGet = User::all()->where('id',$user->id)->first();
         return response()->json([
             'message' => "Welcome ".$userGet->name,
