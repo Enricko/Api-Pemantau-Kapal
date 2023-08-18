@@ -19,6 +19,9 @@ class KapalRes extends JsonResource
             "flag"=> $this->flag,
             "kelas"=> $this->class,
             "builder"=> $this->builder,
+            "size"=> $this->size,
+            "ip"=> $this->ip,
+            "port"=> $this->port,
             "year_built"=> $this->year_built,
             "created_at"=> $this->created_at,
             "updated_at"=> $this->updated_at

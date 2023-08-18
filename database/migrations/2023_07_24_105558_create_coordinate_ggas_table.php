@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('coordinate_ggas', function (Blueprint $table) {
             $table->id('id_coor_gga');
             $table->string('call_sign');
-            $table->foreign('call_sign')->references('call_sign')->on('kapals')->onDelete('cascade');
+            $table->foreign('call_sign')->references('call_sign')->on('kapals')->onUpdate('cascade')->onDelete('cascade');
             $table->string('message_id');
             $table->double('utc_position');
             $table->double('latitude');

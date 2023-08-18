@@ -6,10 +6,16 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "amphp/amp": "^3.0",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.2",
-        "laravel/tinker": "^2.8"
+        "laravel/tinker": "^2.8",
+        "predis/predis": "^2.2",
+        "react/datagram": "^1.9",
+        "react/event-loop": "^1.4",
+        "react/socket": "^1.13",
+        "spatie/async": "^1.5"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

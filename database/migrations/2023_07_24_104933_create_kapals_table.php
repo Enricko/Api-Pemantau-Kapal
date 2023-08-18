@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('class');
             $table->string('builder');
             $table->string('year_built');
+            $table->enum('size',['small','medium','large','extra_large']);
+            $table->string('ip');
+            $table->string('port');
             $table->timestamps();
         });
     }

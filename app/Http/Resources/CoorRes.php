@@ -18,6 +18,7 @@ class CoorRes extends JsonResource
             'id_coor'=>$this->id_coor,
             'call_sign'=>$this->call_sign,
             'series_id'=>$this->series_id,
+            'default_heading' => $this->default_heading,
             'coor_hdt' => [
                 'id_coor_hdt'=>$this->id_coor_hdt,
                 'heading_degree'=>$this->heading_degree,

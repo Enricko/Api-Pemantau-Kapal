@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('coordinate_hdts', function (Blueprint $table) {
             $table->id('id_coor_hdt');
             $table->string('call_sign');
-            $table->foreign('call_sign')->references('call_sign')->on('kapals')->onDelete('cascade');
+            $table->foreign('call_sign')->references('call_sign')->on('kapals')->onUpdate('cascade')->onDelete('cascade');
             $table->double('heading_degree');
             $table->string('checksum');
             $table->timestamps();

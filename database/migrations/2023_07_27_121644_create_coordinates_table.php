@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('coordinates', function (Blueprint $table) {
             $table->id("id_coor");
             $table->string('call_sign');
-            $table->foreign('call_sign')->references('call_sign')->on('kapals')->onDelete('cascade');
+            $table->foreign('call_sign')->references('call_sign')->on('kapals')->onUpdate('cascade')->onDelete('cascade');
             $table->bigInteger('series_id');
             $table->unsignedBigInteger('id_coor_gga')->nullable();
-            $table->foreign('id_coor_gga')->references('id_coor_gga')->on('coordinate_ggas')->onDelete('cascade');
+            $table->foreign('id_coor_gga')->references('id_coor_gga')->on('coordinate_ggas')->onUpdate('cascade')->onDelete('cascade');
             $table->unsignedBigInteger('id_coor_hdt')->nullable();
-            $table->foreign('id_coor_hdt')->references('id_coor_hdt')->on('coordinate_hdts')->onDelete('cascade');
+            $table->foreign('id_coor_hdt')->references('id_coor_hdt')->on('coordinate_hdts')->onUpdate('cascade')->onDelete('cascade');
+            $table->double('default_heading');
             $table->timestamps();
         });
     }

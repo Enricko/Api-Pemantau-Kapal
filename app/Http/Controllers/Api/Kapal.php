@@ -14,9 +14,9 @@ class Kapal extends Controller
     {
         $kapal = ModelsKapal::select();
         $message = "Data Kapal Ditemukan";
-        return Kapal::displayData($kapal,$message);   
-    }   
-    
+        return Kapal::displayData($kapal,$message);
+    }
+
     public function getKapal(){
         $call_sign = request()->call_sign;
 
@@ -30,7 +30,7 @@ class Kapal extends Controller
         $rules = [
             'call_sign' => ['required','max:255'],
         ];
-        return Kapal::displayData($kapal,$message,$rules);   
+        return Kapal::displayData($kapal,$message,$rules);
     }
 
     public function insertKapal(){
@@ -39,6 +39,9 @@ class Kapal extends Controller
         $class = request()->class;
         $builder = request()->builder;
         $year_built = request()->year_built;
+        $size = strtolower(request()->size);
+        $ip = request()->ip;
+        $port = request()->port;
 
         $rules = [
             'call_sign' => ['required','max:255','unique:kapals'],
@@ -46,6 +49,9 @@ class Kapal extends Controller
             'class' => ['required','max:255'],
             'builder' => ['required','max:255'],
             'year_built' => ['required','max:255'],
+            'size' => ['required','max:255'],
+            'ip' => ['required','max:255'],
+            'port' => ['required','max:255'],
         ];
         $validator = Validator::make(request()->all(),$rules);
         if($validator->fails()){
@@ -62,6 +68,9 @@ class Kapal extends Controller
                 'class'=>$class,
                 'builder'=>$builder,
                 'year_built'=>$year_built,
+                'size'=>$size,
+                'ip'=>$ip,
+                'port'=>$port,
             ]);
         } catch (\Throwable $th) {
             $message = $th;
@@ -77,7 +86,75 @@ class Kapal extends Controller
         ]);
 
     }
-    
+
+    public function updateKapal(){
+        $old_call_sign = request()->old_call_sign;
+        $call_sign = request()->call_sign;
+        $flag = request()->flag;
+        $class = request()->class;
+        $builder = request()->builder;
+        $year_built = request()->year_built;
+        $size = strtolower(request()->size);
+        $ip = request()->ip;
+        $port = request()->port;
+
+        $rules = [
+            'old_call_sign' => ['required','max:255'],
+            'call_sign' => ['required','max:255','unique:kapals'],
+            'flag' => ['required','max:255'],
+            'class' => ['required','max:255'],
+            'builder' => ['required','max:255'],
+            'year_built' => ['required','max:255'],
+            'size' => ['required','max:255'],
+            'ip' => ['required','max:255'],
+            'port' => ['required','max:255'],
+        ];
+        $validator = Validator::make(request()->all(),$rules);
+        if($validator->fails()){
+            return response()->json([
+                'message' => "Validator Fails",
+                'error' => $validator->errors()
+            ],400);
+        }
+        if(ModelsKapal::where(['call_sign'=>$old_call_sign])->get()->count() <= 0){
+            return response()->json([
+                'message' => "old_call_sign Not Found"
+            ],404);
+        }
+
+        try {
+            ModelsKapal::where(['call_sign'=>$old_call_sign])->update([
+                'call_sign'=>$call_sign,
+                'flag'=>$flag,
+                'class'=>$class,
+                'builder'=>$builder,
+                'year_built'=>$year_built,
+                'size'=>$size,
+                'ip'=>$ip,
+                'port'=>$port,
+            ]);
+        } catch (\Throwable $th) {
+            $message = $th;
+            return response()->json([
+                'message' => $message,
+                'status' => 400
+            ],400);
+        }
+
+        return response()->json([
+            'message' => "Data berhasil di ubah database",
+            'status' => 200
+        ]);
+    }
+
+    public function deleteKapal($call_sign){
+        ModelsKapal::where('call_sign',$call_sign)->delete();
+        return response()->json([
+            'message' => "Data berhasil di hapus database",
+            'status' => 200
+        ]);
+    }
+
     public function displayData($kapal,$message,$rules = []){
         $total = $kapal->count();
 
