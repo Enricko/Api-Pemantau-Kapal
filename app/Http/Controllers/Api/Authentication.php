@@ -29,7 +29,7 @@ class Authentication extends Controller
             $userGet = $user->first();
             $token = $userGet->createToken('AppsToken',expiresAt:now()->addDays(2))->plainTextToken;
             return response()->json([
-                'message' => 'Selamat datang '.$userGet->name,
+                'message' => "Login Success",
                 'token' => $token,
                 'user' => $userGet,
             ],200);
@@ -66,7 +66,7 @@ class Authentication extends Controller
         $token = $user->createToken('AppsToken',expiresAt:now()->addDays(2))->plainTextToken;
         $userGet = User::all()->where('id',$user->id)->first();
         return response()->json([
-            'message' => "Welcome ".$userGet->name,
+            'message' => "Login Success",
             'token' => $token,
             'data' => $userGet,
         ], 200);
