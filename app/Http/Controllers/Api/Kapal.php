@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\KapalAndCoorRes;
 use App\Http\Resources\KapalRes;
+use App\Models\Coordinate;
 use App\Models\Kapal as ModelsKapal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class Kapal extends Controller
@@ -42,6 +45,7 @@ class Kapal extends Controller
         $size = strtolower(request()->size);
         $ip = request()->ip;
         $port = request()->port;
+        $xml = request()->file("xml_file");
 
         $rules = [
             'call_sign' => ['required','max:255','unique:kapals'],
@@ -52,6 +56,7 @@ class Kapal extends Controller
             'size' => ['required','max:255'],
             'ip' => ['required','max:255'],
             'port' => ['required','max:255'],
+            'xml_file' => ['required','file','mimes:xml','max:8192'],
         ];
         $validator = Validator::make(request()->all(),$rules);
         if($validator->fails()){
@@ -59,6 +64,13 @@ class Kapal extends Controller
                 'message' => "Validator Fails",
                 'error' => $validator->errors()
             ],400);
+        }
+
+        if(request()->hasFile('xml_file')){
+            $xml_file_name = now().'_'.request()->call_sign.'.xml';
+            $xml_path_upload = 'xml';
+
+            $xml->move($xml_path_upload,$xml_file_name);
         }
 
         try {
@@ -71,6 +83,7 @@ class Kapal extends Controller
                 'size'=>$size,
                 'ip'=>$ip,
                 'port'=>$port,
+                'xml_file'=>$xml_file_name,
             ]);
         } catch (\Throwable $th) {
             $message = $th;
@@ -97,6 +110,7 @@ class Kapal extends Controller
         $size = strtolower(request()->size);
         $ip = request()->ip;
         $port = request()->port;
+        $xml = request()->file("xml_file");
 
         $rules = [
             'old_call_sign' => ['required','max:255'],
@@ -108,18 +122,38 @@ class Kapal extends Controller
             'size' => ['required','max:255'],
             'ip' => ['required','max:255'],
             'port' => ['required','max:255'],
+            'xml_file' => ['file','mimes:xml','max:8192'],
         ];
         $validator = Validator::make(request()->all(),$rules);
         if($validator->fails()){
-            return response()->json([
-                'message' => "Validator Fails",
-                'error' => $validator->errors()
-            ],400);
+            if($validator->errors()->first() != "The call sign has already been taken."){
+                return response()->json([
+                    'message' => $validator->errors()->first(),
+                ],400);
+            }
         }
+
         if(ModelsKapal::where(['call_sign'=>$old_call_sign])->get()->count() <= 0){
             return response()->json([
                 'message' => "old_call_sign Not Found"
             ],404);
+        }
+
+        $kapal = ModelsKapal::where(['call_sign'=>$old_call_sign])->first();
+        if(request()->hasFile('xml_file')){
+            $xml_file_name = now().'_'.request()->call_sign.'.xml';
+            $xml_path_upload = 'xml';
+
+            $xml->move($xml_path_upload,$xml_file_name);
+
+            $tmp = "/home/binavavt/api.binav-avts.id/{$xml_path_upload}/{$kapal->xml_file}";
+
+            if (file_exists($tmp)) {
+                unlink($tmp);
+            }
+            ModelsKapal::where(['call_sign'=>$old_call_sign])->update([
+                "xml_file"=>$xml_file_name
+            ]);
         }
 
         try {
@@ -148,11 +182,25 @@ class Kapal extends Controller
     }
 
     public function deleteKapal($call_sign){
-        ModelsKapal::where('call_sign',$call_sign)->delete();
+        $kapal = ModelsKapal::where('call_sign',$call_sign)->first();
+        $xml_path_upload = 'xml';
+        if($kapal){
+            $tmp = "/home/binavavt/api.binav-avts.id/{$xml_path_upload}/{$kapal->xml_file}";
+
+            if (file_exists($tmp)) {
+                unlink($tmp);
+            }
+            ModelsKapal::where('call_sign',$call_sign)->delete();
+            return response()->json([
+                'message' => "Data berhasil di hapus database",
+                'status' => 200
+            ]);
+        }
         return response()->json([
-            'message' => "Data berhasil di hapus database",
-            'status' => 200
-        ]);
+            'message' => "Call Sign tidak ditemukan",
+            'status' => 404
+        ],404);
+
     }
 
     public function displayData($kapal,$message,$rules = []){
@@ -184,4 +232,94 @@ class Kapal extends Controller
         ]);
 
     }
+
+    public function getKapalAndLatestCoor(){
+        $call_sign = request()->call_sign;
+        $kapal = ModelsKapal::orderBy("kapals.call_sign","ASC");
+        if(!empty($call_sign)){
+            $kapal = $kapal->where("kapals.call_sign",$call_sign);
+        }
+        $data = collect();
+        foreach($kapal->get() as $row){
+            $coor = Coordinate::join('coordinate_ggas','coordinates.id_coor_gga','=','coordinate_ggas.id_coor_gga')
+            ->leftJoin('coordinate_hdts','coordinates.id_coor_hdt','=','coordinate_hdts.id_coor_hdt')->latest("coordinates.series_id")->where('coordinates.call_sign',$row->call_sign)->take(1);
+            foreach($coor->get() as $rowCoor){
+                $data->push([
+                    "kapal" => [
+                        "call_sign"=> $row->call_sign,
+                        "flag"=> $row->flag,
+                        "kelas"=> $row->class,
+                        "builder"=> $row->builder,
+                        "size"=> $row->size,
+                        "ip"=> $row->ip,
+                        "port"=> $row->port,
+                        "year_built"=> $row->year_built,
+                        "created_at"=> $row->created_at,
+                        "updated_at"=> $row->updated_at
+                    ],
+                    'coor'=>[
+                        'id_coor'=> (int)$rowCoor->id_coor,
+                        'call_sign'=> $rowCoor->call_sign,
+                        'series_id'=> (int)$rowCoor->series_id,
+                        'default_heading' => $rowCoor->default_heading == null ? null : (float)$rowCoor->default_heading,
+                        'coor_hdt' => [
+                            'id_coor_hdt'=> $rowCoor->id_coor_hdt == null ? null : (int)$rowCoor->id_coor_hdt,
+                            'heading_degree'=> $rowCoor->heading_degree == null ? null :(float)$rowCoor->heading_degree,
+                            'checksum'=>$rowCoor->checksum
+                        ],
+                        'coor_gga' => [
+                            'id_coor_gga'=> (int)$rowCoor->id_coor_gga,
+                            'utc_position'=> (float)$rowCoor->utc_position,
+                            'latitude'=> (float)$rowCoor->latitude,
+                            'direction_latitude'=>$rowCoor->direction_latitude,
+                            'longitude'=> (float)$rowCoor->longitude,
+                            'direction_longitude'=>$rowCoor->direction_longitude,
+                            'gps_quality_indicator'=>$rowCoor->gps_quality_indicator,
+                            'number_sv'=> (int)$rowCoor->number_sv,
+                            'hdop'=> (float)$rowCoor->hdop,
+                            'orthometric_height'=> (float)$rowCoor->orthometric_height,
+                            'unit_measure'=>$rowCoor->unit_measure,
+                            'geoid_seperation'=> (float)$rowCoor->geoid_seperation,
+                            'geoid_measure'=>$rowCoor->geoid_measure,
+                        ],
+                        'created_at'=>$rowCoor->created_at,
+                        'updated_at'=>$rowCoor->updated_at,
+                    ]
+                ]);
+            }
+        }
+        // return $data->count();
+        return Kapal::displayDataKapalCoor($data,"Data Kapal Ditemukan");
+    }
+
+    public function displayDataKapalCoor($kapal,$message,$rules = []){
+        $total = $kapal->count();
+
+        // Pages parameter
+        $page = request()->page == null ? 1 : request()->page;
+        $perpage = request()->perpage == null ? 10 : request()->perpage;
+        $kapal = $kapal->skip(($page - 1) * $perpage)->take($perpage);
+
+        // Validasi
+        $validator = Validator::make(request()->all(),$rules);
+        if($validator->fails()){
+            return response()->json([
+                'message' => "Validator Fails",
+                'error' => $validator->errors()
+            ],400);
+        }
+
+        // Response
+        // $kapalCol = KapalAndCoorRes::collection($kapal);
+        return response()->json([
+            'message' => $message,
+            'status' => 200,
+            'perpage' => intval($perpage),
+            'page' => intval($page),
+            'total' => $total,
+            'data' => $kapal,
+        ]);
+
+    }
+
 }

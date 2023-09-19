@@ -32,6 +32,8 @@ Route::post('/insert_kapal',[\App\Http\Controllers\Api\Kapal::class,'insertKapal
 Route::post('/update_kapal',[\App\Http\Controllers\Api\Kapal::class,'updateKapal']);
 Route::delete('/delete_kapal/{call_sign}',[\App\Http\Controllers\Api\Kapal::class,'deleteKapal']);
 
+Route::get('/get_kapal_and_latest_coor',[\App\Http\Controllers\Api\Kapal::class,'getKapalAndLatestCoor']);
+
 Route::get('/get_all_latlang_coor',[\App\Http\Controllers\Api\Coordinate::class,'getLatLangCoor']);
 Route::get('/get_all_latest_coor',[\App\Http\Controllers\Api\Coordinate::class,'getKapalAllLatestCoor']);
 Route::get('/get_all_coor',[\App\Http\Controllers\Api\Coordinate::class,'getKapalAllCoor']);

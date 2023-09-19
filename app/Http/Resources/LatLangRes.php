@@ -16,9 +16,9 @@ class LatLangRes extends JsonResource
     {
         return [
             'call_sign' => $this->call_sign,
-            'series_id' => $this->series_id,
-            'latitude' => $this->latitude,
-            'longitude' => $this->longitude,
+            'series_id' => (int)$this->series_id,
+            'latitude' => (float)$this->latitude,
+            'longitude' => (float)$this->longitude,
         ];
     }
 }

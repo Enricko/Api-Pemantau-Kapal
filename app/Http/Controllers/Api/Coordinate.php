@@ -22,8 +22,8 @@ class Coordinate extends Controller
     public function getLatLangCoor(){
         $call_sign = request()->call_sign;
         $message = "Data Coor Kapal Ditemukan";
-        $coor = ModelsCoordinate::join('coordinate_ggas','coordinate_ggas.id_coor_gga','=','coordinates.id_coor_gga');
-        // ->join('coordinate_hdts','coordinate_hdts.id_coor_hdt','=','coordinates.id_coor_hdt')
+        $coor = ModelsCoordinate::select(["*","coordinates.call_sign as call_sign"])->join('coordinate_ggas','coordinate_ggas.id_coor_gga','=','coordinates.id_coor_gga')
+        ->leftJoin('coordinate_hdts','coordinate_hdts.id_coor_hdt','=','coordinates.id_coor_hdt');
         if(!empty($call_sign)){
             $coor = $coor->where('coordinates.call_sign',$call_sign);
         }
@@ -46,11 +46,16 @@ class Coordinate extends Controller
         ];
         return Coordinate::displayData($coor,$message,$rules);
     }
-    public function getKapalAllLatestCoor(){
+    public function getKapalLatestCoor(){
+        $call_sign = request()->call_sign;
         $message = "Data Coor Kapal Ditemukan";
         $coor = ModelsCoordinate::join('coordinate_ggas','coordinate_ggas.id_coor_gga','=','coordinates.id_coor_gga')
-        // ->join('coordinate_hdts','coordinate_hdts.id_coor_hdt','=','coordinates.id_coor_hdt')
-        ->orderByDesc('coordinates.series_id')->get()->unique('call_sign');
+        ->join('coordinate_hdts','coordinate_hdts.id_coor_hdt','=','coordinates.id_coor_hdt');
+        if(!empty($call_sign)){
+            $coor = $coor->where('coordinates.call_sign',$call_sign);
+        }
+
+        $coor = $coor->orderByDesc('coordinates.series_id')->get()->unique('call_sign');
         return Coordinate::displayData($coor,$message);
     }
 
