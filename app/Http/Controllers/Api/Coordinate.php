@@ -28,9 +28,6 @@ class Coordinate extends Controller
             $coor = $coor->where('coordinates.call_sign',$call_sign);
         }
         $coor = $coor->orderByDesc('coordinates.series_id')->get();
-        // $rules = [
-        //     'call_sign' => ['required','max:255'],
-        // ];
         return Coordinate::displayDataLatLang($coor,$message);
     }
 
@@ -70,8 +67,7 @@ class Coordinate extends Controller
         $validator = Validator::make(request()->all(),$rules);
         if($validator->fails()){
             return response()->json([
-                'message' => "Validator Fails",
-                'error' => $validator->errors()
+                'message' => $validator->errors()->first()
             ],400);
         }
 
@@ -98,8 +94,7 @@ class Coordinate extends Controller
         $validator = Validator::make(request()->all(),$rules);
         if($validator->fails()){
             return response()->json([
-                'message' => "Validator Fails",
-                'error' => $validator->errors()
+                'message' => $validator->errors()->first()
             ],400);
         }
 

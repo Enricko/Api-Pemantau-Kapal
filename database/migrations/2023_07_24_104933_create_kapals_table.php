@@ -20,6 +20,7 @@ return new class extends Migration
             $table->enum('size',['small','medium','large','extra_large']);
             $table->string('ip');
             $table->string('port');
+            $table->text('xml_file');
             $table->timestamps();
         });
     }

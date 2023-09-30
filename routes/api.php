@@ -42,3 +42,8 @@ Route::get('/insert_coor',[\App\Http\Controllers\Api\Coordinate::class,'insertCo
 Route::post('/insert_coor_GGA',[\App\Http\Controllers\Api\Coordinate::class,'insertCoorGGA']);
 Route::post('/insert_coor_HDT',[\App\Http\Controllers\Api\Coordinate::class,'insertCoorHDT']);
 
+// === Mapping ===
+Route::post('/insert_mapping',[\App\Http\Controllers\Api\Mapping::class,'insertMap']);
+Route::post('/update_mapping',[\App\Http\Controllers\Api\Mapping::class,'updateMap']);
+Route::post('/delete_mapping/{id_mapping}',[\App\Http\Controllers\Api\Mapping::class,'deleteMap']);
+Route::get('/get_mapping',[\App\Http\Controllers\Api\Mapping::class,'mapping']);

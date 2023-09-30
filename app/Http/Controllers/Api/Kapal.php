@@ -9,7 +9,9 @@ use App\Models\Coordinate;
 use App\Models\Kapal as ModelsKapal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class Kapal extends Controller
 {
@@ -61,16 +63,15 @@ class Kapal extends Controller
         $validator = Validator::make(request()->all(),$rules);
         if($validator->fails()){
             return response()->json([
-                'message' => "Validator Fails",
-                'error' => $validator->errors()
+                'message' => $validator->errors()->first()
             ],400);
         }
 
         if(request()->hasFile('xml_file')){
-            $xml_file_name = now().'_'.request()->call_sign.'.xml';
-            $xml_path_upload = 'xml';
+            $xml_file_name = now()->format('Y_m_d_H_i_s').'_'.request()->call_sign.".xml";
+            $xml_path_upload = 'public/xml';
 
-            $xml->move($xml_path_upload,$xml_file_name);
+            $xml->storeAs($xml_path_upload,$xml_file_name);
         }
 
         try {
@@ -141,16 +142,17 @@ class Kapal extends Controller
 
         $kapal = ModelsKapal::where(['call_sign'=>$old_call_sign])->first();
         if(request()->hasFile('xml_file')){
-            $xml_file_name = now().'_'.request()->call_sign.'.xml';
-            $xml_path_upload = 'xml';
+            $xml_file_name = now()->format('Y_m_d_H_i_s').'_'.request()->call_sign.".xml";
+            $xml_path_upload = 'public/xml';
 
-            $xml->move($xml_path_upload,$xml_file_name);
+            $xml->storeAs($xml_path_upload,$xml_file_name);
 
-            $tmp = "/home/binavavt/api.binav-avts.id/{$xml_path_upload}/{$kapal->xml_file}";
+            $tmp = storage_path("app/{$xml_path_upload}/{$kapal->xml_file}");
 
             if (file_exists($tmp)) {
                 unlink($tmp);
             }
+
             ModelsKapal::where(['call_sign'=>$old_call_sign])->update([
                 "xml_file"=>$xml_file_name
             ]);
@@ -177,15 +179,15 @@ class Kapal extends Controller
 
         return response()->json([
             'message' => "Data berhasil di ubah database",
-            'status' => 200
+            'status' => 200,
         ]);
     }
 
     public function deleteKapal($call_sign){
         $kapal = ModelsKapal::where('call_sign',$call_sign)->first();
-        $xml_path_upload = 'xml';
+        $xml_path_upload = 'public/xml';
         if($kapal){
-            $tmp = "/home/binavavt/api.binav-avts.id/{$xml_path_upload}/{$kapal->xml_file}";
+            $tmp = storage_path("app/{$xml_path_upload}/{$kapal->xml_file}");
 
             if (file_exists($tmp)) {
                 unlink($tmp);
@@ -215,8 +217,7 @@ class Kapal extends Controller
         $validator = Validator::make(request()->all(),$rules);
         if($validator->fails()){
             return response()->json([
-                'message' => "Validator Fails",
-                'error' => $validator->errors()
+                'message' => $validator->errors()->first()
             ],400);
         }
 
@@ -255,7 +256,8 @@ class Kapal extends Controller
                         "port"=> $row->port,
                         "year_built"=> $row->year_built,
                         "created_at"=> $row->created_at,
-                        "updated_at"=> $row->updated_at
+                        "updated_at"=> $row->updated_at,
+                        "xml_file"=> $row->xml_file != null ? asset("/storage/xml/{$row->xml_file}") : ""
                     ],
                     'coor'=>[
                         'id_coor'=> (int)$rowCoor->id_coor,
@@ -304,8 +306,7 @@ class Kapal extends Controller
         $validator = Validator::make(request()->all(),$rules);
         if($validator->fails()){
             return response()->json([
-                'message' => "Validator Fails",
-                'error' => $validator->errors()
+                'message' => $validator->errors()->first()
             ],400);
         }
 

@@ -16,8 +16,3 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::post('/receive-nmea', [\App\Http\Controllers\Api\Coordinate::class, 'receive']);
-
-Route::get("/send-event",function (){
-    broadcast(new \App\Events\HelloEvent());
-});

@@ -12,9 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('socket:server')->everySecond();
-        // $schedule->command('socket:run')->function();
-        // $schedule->command('sanctum:prune-expired --hours=24')->daily();
+        // $schedule->command('inspire')->hourly();
     }
 
     /**
